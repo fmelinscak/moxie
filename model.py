@@ -45,8 +45,19 @@ def wicked_utility_func(x):
     pass
 
 
-Study = namedtuple('Study',['study_id', 'lab_id', 'is_published', \
-    'study_type', 'target_dims', 'study_results'])
+class Study:
+    def __init__(self, study_id, lab_id, is_published, study_type,
+        target_dims, study_results):
+        self.study_id = study_id
+        self.lab_id = lab_id
+        self.is_published = is_published
+        self.study_type = study_type
+        self.target_dims = target_dims
+        self.study_results = study_results
+
+    def __repr__(self):
+           return (f'{self.__class__.__name__}('
+               f'{self.__dict__!r})')
 
 
 class Knowledgebase:
@@ -73,12 +84,12 @@ class GlobalKnowledgebase(Knowledgebase):
     def receive_study(self, study):
         # Assign unique id to submitted study if necessary
         if study.study_id is None:
-            study = study._replace(study_id=self.next_study_id)
+            study.study_id = self.next_study_id
             self.next_study_id += 1
 
         # Accept study to kbase
         # TODO: make this step non-certain
-        study = study._replace(is_published= True)
+        study.is_published = True
         self.accepted_studies.append(study)
         
         return study.study_id, study.is_published
@@ -183,11 +194,10 @@ class Lab(Agent):
     def submit_study(self, study):
         # Submit study to global knowledgebase
         print("Submitting study:\n")
-        study_id, study_published = \
+        study.study_id, study.study_published = \
             self.model.global_kbase.receive_study(study)
         print("Global kbase:\n", self.model.global_kbase.accepted_studies)
 
         # Add study (now with id) to local knowledgebase
-        study = study._replace(study_id=study_id, is_published=study_published)
         self.local_kbase.receive_study(study)
         print("Local kbase:\n", self.local_kbase.accepted_studies)

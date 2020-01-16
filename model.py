@@ -63,7 +63,7 @@ class Study:
 
 class Knowledgebase:
     def __init__(self):
-        self.accepted_studies = []
+        self.accepted_studies = {}
 
     def receive_study(self, study):
         raise NotImplementedError
@@ -74,7 +74,7 @@ class LocalKnowledgebase(Knowledgebase):
         super().__init__()
 
     def receive_study(self, study):
-        self.accepted_studies.append(study)
+        self.accepted_studies[study.study_id] = study
 
 
 class GlobalKnowledgebase(Knowledgebase):
@@ -91,7 +91,7 @@ class GlobalKnowledgebase(Knowledgebase):
         # Accept study to kbase
         # TODO: make this step non-certain
         study.is_published = True
-        self.accepted_studies.append(study)
+        self.accepted_studies[study.study_id] = study
         
         return study.study_id, study.is_published
 

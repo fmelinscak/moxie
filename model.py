@@ -146,10 +146,10 @@ class Lab(Agent):
     def __init__(self, lab_id, model, design_strategy):
         self.lab_id = lab_id
         super().__init__(lab_id, model)
-        self.design_strategy = design_strategy
-        self.local_kbase = LocalKnowledgebase()
-        self.balance_resources = 0
-        self.landscape_dim = model.landscape.get_dim()
+        self._design_strategy = design_strategy
+        self._local_kbase = LocalKnowledgebase()
+        self._balance_resources = 0
+        self._landscape_dim = model.landscape.get_dim()
 
     def step(self):
         print("Agent {} activated".format(self.lab_id))
@@ -160,18 +160,18 @@ class Lab(Agent):
     
 
     def request_resources(self):
-        self.balance_resources += self.model.step_resources
+        self._balance_resources += self.model.step_resources
         print("Got {new_resources} new resources. New balance is {balance}"\
-            .format(new_resources=self.model.step_resources, balance=self.balance_resources))
+            .format(new_resources=self.model.step_resources, balance=self._balance_resources))
 
     def update_local_kbase(self):
         # TODO: make the transfer imperfect and use the object interface
-        self.local_kbase._accepted_studies = copy.deepcopy(self.model.global_kbase._accepted_studies)
+        self._local_kbase._accepted_studies = copy.deepcopy(self.model.global_kbase._accepted_studies)
 
     def conduct_study(self):
         print("Conducting study...")
         # Select solutions to test and allocate resources to testing them
-        if self.design_strategy == "random":
+        if self._design_strategy == "random":
             study_plan = self.random_design()
 
         # Spend resources on evaluating solutions against the landcape
@@ -180,7 +180,7 @@ class Lab(Agent):
             utilities = [self.model.landscape.eval_solution(solution) \
                 for _ in range(resources)]
             study_results[solution] = utilities
-            self.balance_resources -= resources
+            self._balance_resources -= resources
         
         print("Study results:\n", study_results)
 
@@ -198,17 +198,17 @@ class Lab(Agent):
         print("Global kbase:\n", self.model.global_kbase._accepted_studies)
 
         # Add study (now with id) to local knowledgebase
-        self.local_kbase.receive_study(study)
-        print("Local kbase:\n", self.local_kbase._accepted_studies)
+        self._local_kbase.receive_study(study)
+        print("Local kbase:\n", self._local_kbase._accepted_studies)
 
     
     def random_design(self):
         # Generate a random solution
         solution = tuple([self.random.random() \
-            for _ in range(self.landscape_dim)])
+            for _ in range(self._landscape_dim)])
         
         # Create study plan
-        study_plan = {solution: self.balance_resources}
+        study_plan = {solution: self._balance_resources}
 
         return study_plan
 

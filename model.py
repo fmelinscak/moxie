@@ -1,4 +1,5 @@
 from collections import namedtuple
+import copy
 
 from mesa import Agent, Model
 from mesa.time import RandomActivation
@@ -165,7 +166,7 @@ class Lab(Agent):
 
     def update_local_kbase(self):
         # TODO: make the transfer imperfect and use the object interface
-        self.local_kbase.accepted_studies = self.model.global_kbase.accepted_studies
+        self.local_kbase.accepted_studies = copy.deepcopy(self.model.global_kbase.accepted_studies)
 
     def conduct_study(self):
         print("Conducting study...")

@@ -100,7 +100,7 @@ class OptimSciEnv(Model):
     """
     A model of an optimization-centric research environment
     """
-    def __init__(self, n_labs, step_resources, landscape_type, design_strategy):
+    def __init__(self, n_labs, step_resources, landscape_type, design_strategy, seed=None):
         super().__init__()
         self.n_labs = n_labs
         self.step_resources = step_resources

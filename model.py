@@ -171,10 +171,8 @@ class Lab(Agent):
     def conduct_study(self):
         print("Conducting study...")
         # Select solutions to test and allocate resources to testing them
-        # TODO: make solution selection dependent on design strategy
-        study_plan = {
-            (0.7, 0.3)  : 1
-        }
+        if self.design_strategy == "random":
+            study_plan = self.random_design()
 
         # Spend resources on evaluating solutions against the landcape
         study_results = {}
@@ -202,3 +200,15 @@ class Lab(Agent):
         # Add study (now with id) to local knowledgebase
         self.local_kbase.receive_study(study)
         print("Local kbase:\n", self.local_kbase.accepted_studies)
+
+    
+    def random_design(self):
+        # Generate a random solution
+        solution = tuple([self.model.random.random() \
+            for _ in range(self.landscape_dim)])
+        
+        # Create study plan
+        study_plan = {solution: self.balance_resources}
+
+        return study_plan
+

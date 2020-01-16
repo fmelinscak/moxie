@@ -148,7 +148,7 @@ class Lab(Agent):
         super().__init__(lab_id, model)
         self.design_strategy = design_strategy
         self.local_kbase = LocalKnowledgebase()
-        self.balance_resources = 0.0
+        self.balance_resources = 0
         self.landscape_dim = model.landscape.get_dim()
 
     def step(self):

@@ -72,6 +72,12 @@ class Knowledgebase:
     def receive_study(self, study):
         raise NotImplementedError
 
+    def get_study_ids(self):
+        return self._accepted_studies.keys()
+
+    def get_study_by_id(self, study_id):
+        return self._accepted_studies[study_id]
+
 
 class LocalKnowledgebase(Knowledgebase):
     def __init__(self):
@@ -104,10 +110,12 @@ class OptimSciEnv(Model):
     """
     A model of an optimization-centric research environment
     """
-    def __init__(self, n_labs, step_resources, landscape_type, design_strategy, seed=None):
+    def __init__(self, n_labs, step_resources, landscape_type, \
+        design_strategy, study_intake_capacity, seed=None):
         super().__init__()
         self.n_labs = n_labs
         self.step_resources = step_resources
+        self.study_intake_capacity = study_intake_capacity
         
         # Initialize global knowledge base (i.e. record of published studies)
         self.global_kbase = GlobalKnowledgebase()
@@ -169,8 +177,17 @@ class Lab(Agent):
             .format(new_resources=self.model.step_resources, balance=self._balance_resources))
 
     def update_local_kbase(self):
-        # TODO: make the transfer imperfect and use the object interface
-        self._local_kbase._accepted_studies = copy.deepcopy(self.model.global_kbase._accepted_studies)
+        # Find new studies in global kbase
+        global_study_ids = self.model.global_kbase.get_study_ids()
+        local_study_ids = self._local_kbase.get_study_ids()
+        new_study_ids = [id for id in global_study_ids if not id in local_study_ids]
+
+        # Stochastically incorporate new studies into local kbase
+        n_retain = min(len(new_study_ids), self.model.study_intake_capacity)
+        retained_study_ids = self.random.sample(new_study_ids, n_retain)
+        for id in retained_study_ids:
+            retained_study = self.model.global_kbase.get_study_by_id(id)
+            self._local_kbase.receive_study(retained_study)
 
     def conduct_study(self):
         print("Conducting study...")

@@ -65,6 +65,10 @@ class Knowledgebase:
     def __init__(self):
         self._accepted_studies = {}
 
+    def __repr__(self):
+           return (f'{self.__class__.__name__}('
+               f'{self._accepted_studies!r})')
+
     def receive_study(self, study):
         raise NotImplementedError
 
@@ -195,11 +199,11 @@ class Lab(Agent):
         print("Submitting study:\n")
         study.study_id, study.study_published = \
             self.model.global_kbase.receive_study(study)
-        print("Global kbase:\n", self.model.global_kbase._accepted_studies)
+        print("Global kbase:\n", self.model.global_kbase)
 
         # Add study (now with id) to local knowledgebase
         self._local_kbase.receive_study(study)
-        print("Local kbase:\n", self._local_kbase._accepted_studies)
+        print("Local kbase:\n", self._local_kbase)
 
     
     def random_design(self):

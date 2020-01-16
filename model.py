@@ -63,7 +63,7 @@ class Study:
 
 class Knowledgebase:
     def __init__(self):
-        self.accepted_studies = {}
+        self._accepted_studies = {}
 
     def receive_study(self, study):
         raise NotImplementedError
@@ -74,24 +74,24 @@ class LocalKnowledgebase(Knowledgebase):
         super().__init__()
 
     def receive_study(self, study):
-        self.accepted_studies[study.study_id] = study
+        self._accepted_studies[study.study_id] = study
 
 
 class GlobalKnowledgebase(Knowledgebase):
     def __init__(self):
         super().__init__()
-        self.next_study_id = 0
+        self._next_study_id = 0
     
     def receive_study(self, study):
         # Assign unique id to submitted study if necessary
         if study.study_id is None:
-            study.study_id = self.next_study_id
-            self.next_study_id += 1
+            study.study_id = self._next_study_id
+            self._next_study_id += 1
 
         # Accept study to kbase
         # TODO: make this step non-certain
         study.is_published = True
-        self.accepted_studies[study.study_id] = study
+        self._accepted_studies[study.study_id] = study
         
         return study.study_id, study.is_published
 
@@ -166,7 +166,7 @@ class Lab(Agent):
 
     def update_local_kbase(self):
         # TODO: make the transfer imperfect and use the object interface
-        self.local_kbase.accepted_studies = copy.deepcopy(self.model.global_kbase.accepted_studies)
+        self.local_kbase._accepted_studies = copy.deepcopy(self.model.global_kbase._accepted_studies)
 
     def conduct_study(self):
         print("Conducting study...")
@@ -195,11 +195,11 @@ class Lab(Agent):
         print("Submitting study:\n")
         study.study_id, study.study_published = \
             self.model.global_kbase.receive_study(study)
-        print("Global kbase:\n", self.model.global_kbase.accepted_studies)
+        print("Global kbase:\n", self.model.global_kbase._accepted_studies)
 
         # Add study (now with id) to local knowledgebase
         self.local_kbase.receive_study(study)
-        print("Local kbase:\n", self.local_kbase.accepted_studies)
+        print("Local kbase:\n", self.local_kbase._accepted_studies)
 
     
     def random_design(self):

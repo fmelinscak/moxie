@@ -13,18 +13,18 @@ class EpistemicLandscape:
     for a peak in utility.
     """
     def __init__(self, model, utility_func, noise_sigma, dim):
-        self.model = model
-        self.utility_func = utility_func
-        self.noise_sigma = noise_sigma
-        self.dim = dim
+        self._model = model
+        self._utility_func = utility_func
+        self._noise_sigma = noise_sigma
+        self._dim = dim
 
     def eval_solution(self, solution):
-        utility = self.utility_func(solution)
-        noise = self.model.random.gauss(0, self.noise_sigma)
+        utility = self._utility_func(solution)
+        noise = self._model.random.gauss(0, self._noise_sigma)
         return  utility + noise
 
     def get_dim(self):
-        return self.dim
+        return self._dim
 
 
 def kind_utility_func(x):

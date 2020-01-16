@@ -88,9 +88,10 @@ class LocalKnowledgebase(Knowledgebase):
 
 
 class GlobalKnowledgebase(Knowledgebase):
-    def __init__(self):
+    def __init__(self, model):
         super().__init__()
         self._next_study_id = 0
+        self.model = model
     
     def receive_study(self, study):
         # Assign unique id to submitted study if necessary
@@ -98,10 +99,12 @@ class GlobalKnowledgebase(Knowledgebase):
             study.study_id = self._next_study_id
             self._next_study_id += 1
 
-        # Accept study to kbase
-        # TODO: make this step non-certain
-        study.is_published = True
-        self._accepted_studies[study.study_id] = study
+        # Accept (stochastically) study to kbase
+        if self.model.random.random() < self.model.p_study_published:
+            study.is_published = True
+            self._accepted_studies[study.study_id] = study
+        else:
+            study.is_published = False
         
         return study.study_id, study.is_published
 
@@ -111,14 +114,15 @@ class OptimSciEnv(Model):
     A model of an optimization-centric research environment
     """
     def __init__(self, n_labs, step_resources, landscape_type, \
-        design_strategy, study_intake_capacity, seed=None):
+        design_strategy, study_intake_capacity, p_study_published, seed=None):
         super().__init__()
         self.n_labs = n_labs
         self.step_resources = step_resources
         self.study_intake_capacity = study_intake_capacity
+        self.p_study_published = p_study_published
         
         # Initialize global knowledge base (i.e. record of published studies)
-        self.global_kbase = GlobalKnowledgebase()
+        self.global_kbase = GlobalKnowledgebase(self)
 
         # Initialize the epistemic landscape ('kind' or 'wicked')
         if landscape_type == "kind":
@@ -150,6 +154,7 @@ class OptimSciEnv(Model):
         # Collect data
         self.datacollector.collect(self)
 
+
 class Lab(Agent):
     """
     An agent representing a research lab (team of researchers or single researcher)
@@ -164,7 +169,7 @@ class Lab(Agent):
         self._landscape_dim = model.landscape.get_dim()
 
     def step(self):
-        print("Agent {} activated".format(self.lab_id))
+        print("\nAgent {} activated".format(self.lab_id))
         self.request_resources()
         self.update_local_kbase()
         new_study = self.conduct_study()
@@ -213,7 +218,7 @@ class Lab(Agent):
 
     def submit_study(self, study):
         # Submit study to global knowledgebase
-        print("Submitting study:\n")
+        print("Submitting study...\n")
         study.study_id, study.study_published = \
             self.model.global_kbase.receive_study(study)
         print("Global kbase:\n", self.model.global_kbase)
@@ -230,6 +235,7 @@ class Lab(Agent):
         
         # Create study plan
         study_plan = {solution: self._balance_resources}
+        study_plan = {(0.3, 0.7): self._balance_resources}
 
         return study_plan
 

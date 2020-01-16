@@ -204,7 +204,7 @@ class Lab(Agent):
     
     def random_design(self):
         # Generate a random solution
-        solution = tuple([self.model.random.random() \
+        solution = tuple([self.random.random() \
             for _ in range(self.landscape_dim)])
         
         # Create study plan

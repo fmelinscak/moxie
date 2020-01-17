@@ -1,9 +1,10 @@
-from collections import namedtuple
+from collections import defaultdict, namedtuple
 import copy
 
 from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
+import numpy as np
 from scipy.stats import multivariate_normal
 
 
@@ -64,6 +65,8 @@ class Study:
 class Knowledgebase:
     def __init__(self):
         self._accepted_studies = {}
+        self._solution_obs_utilities = defaultdict(list)
+        self._solution_summary = defaultdict(dict)
 
     def __repr__(self):
            return (f'{self.__class__.__name__}('
@@ -71,6 +74,38 @@ class Knowledgebase:
 
     def receive_study(self, study):
         raise NotImplementedError
+
+    def process_study_solutions(self, study):
+         for solution, obs_utilities in study.study_results.items():
+            # Compute summaries of the current solution utilities
+            obs_n = len(obs_utilities) # Count
+            obs_mean = np.mean(obs_utilities) # Mean
+            obs_ssq = np.sum((obs_utilities - obs_mean)**2) # Sum of squared distances from mean
+            # Update summaries if solution previously evaluated
+            if solution in self._solution_obs_utilities:
+                old_n = self._solution_summary[solution]["n"]
+                old_mean = self._solution_summary[solution]["mean"]
+                old_ssq = self._solution_summary[solution]["ssq"]
+                total_n = old_n + obs_n
+                total_mean = (old_n*old_mean + obs_n*obs_mean) / total_n
+                # Update SSQ using Chen's parallel algorithm
+                # see: https://en.wikipedia.org/w/index.php?title=Algorithms_for_calculating_variance&oldid=928348206#Parallel_algorithm
+                total_ssq = old_ssq + obs_ssq + (old_mean-obs_mean)**2 * old_n * obs_n / total_n
+            else: # Create summaries if solution new
+                total_n = obs_n
+                total_mean = obs_mean
+                total_ssq = obs_ssq
+            # Calculate derived summaries
+            total_sd = np.sqrt(total_ssq/(total_n-1))
+            total_se = total_sd / np.sqrt(total_n)
+            # Store summaries
+            self._solution_summary[solution]["n"] = total_n
+            self._solution_summary[solution]["mean"] = total_mean
+            self._solution_summary[solution]["ssq"] = total_ssq
+            self._solution_summary[solution]["sd"] = total_sd
+            self._solution_summary[solution]["se"] = total_se 
+            # Add observed utilities to solution-wise dict
+            self._solution_obs_utilities[solution].extend(obs_utilities)
 
     def get_study_ids(self):
         return self._accepted_studies.keys()
@@ -84,7 +119,10 @@ class LocalKnowledgebase(Knowledgebase):
         super().__init__()
 
     def receive_study(self, study):
+        # Add study to local kbase
         self._accepted_studies[study.study_id] = study
+        # Process study solutions (add to database and summary)
+        self.process_study_solutions(study)   
 
 
 class GlobalKnowledgebase(Knowledgebase):
@@ -92,7 +130,7 @@ class GlobalKnowledgebase(Knowledgebase):
         super().__init__()
         self._next_study_id = 0
         self.model = model
-    
+
     def receive_study(self, study):
         # Assign unique id to submitted study if necessary
         if study.study_id is None:
@@ -103,6 +141,8 @@ class GlobalKnowledgebase(Knowledgebase):
         if self.model.random.random() < self.model.p_study_published:
             study.is_published = True
             self._accepted_studies[study.study_id] = study
+            # Process study solutions (add to database and summary)
+            self.process_study_solutions(study)
         else:
             study.is_published = False
         

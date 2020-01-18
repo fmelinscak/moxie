@@ -33,7 +33,9 @@ def kind_utility_func(x):
     An easy-to-optimize 2-dimensional utility function with a single,
     non-correlated gaussian peak.
     """
-    rv = multivariate_normal([0.7, 0.3], [[0.25, 0.0], [0.0, 0.1]])
+    mean = [0.7, 0.3]
+    cov = [[0.25, 0.0], [0.0, 0.1]]
+    rv = multivariate_normal(mean, cov)
     return rv.pdf(x)
 
 

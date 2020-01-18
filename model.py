@@ -252,7 +252,7 @@ class Lab(Agent):
 
         # Pack results into a study (no study ID before submitting to global kbase)
         new_study = Study(study_id=None, lab_id=self.lab_id, is_published=False,
-            study_type="novel", target_dims=None, study_results=study_results)
+            study_type="original", target_dims=None, study_results=study_results)
         print("Study:\n", new_study)
         return new_study
 

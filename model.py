@@ -50,8 +50,25 @@ def wicked_utility_func(x):
     of irrelevant dimensions) with a broad misleading non-optimal gaussian, and a narrow,
     highly correlated optimal gaussian peak
     """
-    # TODO: implement wicked utility function
-    pass
+    mean_global_opt = [0.2, 0.8]
+    s_1 = 0.05
+    s_2 = 0.05
+    r_12 = -0.9
+    cov_global_opt =  [[s_1**2, r_12*s_1*s_2], 
+                       [r_12*s_1*s_2, s_2**2]]
+    rv_global = multivariate_normal(mean_global_opt, cov_global_opt)
+    C_global = 1/rv_global.pdf(mean_global_opt)
+
+    mean_local_opt = [0.7, 0.3]
+    s_1 = 0.3
+    s_2 = 0.2
+    r_12 = 0.0
+    cov_local_opt = [[s_1**2, r_12*s_1*s_2], 
+                     [r_12*s_1*s_2, s_2**2]]
+    rv_local = multivariate_normal(mean_local_opt, cov_local_opt)
+    C_local = 0.8 * 1/rv_local.pdf(mean_local_opt)
+
+    return C_global*rv_global.pdf(x[0:2]) + C_local*rv_local.pdf(x[0:2])
 
 
 class Study:

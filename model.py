@@ -245,8 +245,8 @@ class Lab(Agent):
         print("Conducting study...")
         # Design original or replication study
         if (self._replication_strategy == "none") or \
-            (self.random.random() > self._p_replication) or \
-            (len(self._local_kbase) == 0):
+            (len(self._local_kbase) == 0) or \
+            (self.random.random() > self._p_replication):
             study_type = "original"
             if self._design_strategy == "random":
                 study_plan = self.random_design()        

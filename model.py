@@ -123,6 +123,10 @@ class Knowledgebase:
             if s.study_type == "original"]
         return original_studies
 
+    def get_solution_summary(self):
+        return copy.deepcopy(self._solution_summary)
+
+
 class LocalKnowledgebase(Knowledgebase):
     def __init__(self):
         super().__init__()

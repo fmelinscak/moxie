@@ -34,9 +34,14 @@ def kind_utility_func(x):
     non-correlated gaussian peak.
     """
     mean = [0.7, 0.3]
-    cov = [[0.25, 0.0], [0.0, 0.1]]
+    s_1 = 0.3
+    s_2 = 0.2
+    r_12 = 0.0
+    cov = [[s_1**2, r_12*s_1*s_2], 
+           [r_12*s_1*s_2, s_2**2]]
     rv = multivariate_normal(mean, cov)
-    return rv.pdf(x)
+    A = 1/rv.pdf(mean)
+    return A*rv.pdf(x)
 
 
 def wicked_utility_func(x):

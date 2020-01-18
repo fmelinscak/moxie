@@ -72,6 +72,9 @@ class Knowledgebase:
            return (f'{self.__class__.__name__}('
                f'{self._accepted_studies!r})')
 
+    def __len__(self):
+        return len(self._accepted_studies)
+
     def receive_study(self, study):
         raise NotImplementedError
 

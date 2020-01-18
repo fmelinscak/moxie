@@ -157,7 +157,8 @@ class OptimSciEnv(Model):
     A model of an optimization-centric research environment
     """
     def __init__(self, n_labs, step_resources, landscape_type, \
-        design_strategy, study_intake_capacity, p_study_published, seed=None):
+            design_strategy, replication_strategy, p_replication, \
+            study_intake_capacity, p_study_published, seed=None):
         super().__init__()
         self.n_labs = n_labs
         self.step_resources = step_resources
@@ -183,7 +184,7 @@ class OptimSciEnv(Model):
         self.schedule = RandomActivation(self)
 
         for i in range(self.n_labs):
-            lab = Lab(i, self, design_strategy)
+            lab = Lab(i, self, design_strategy, replication_strategy, p_replication)
             self.schedule.add(lab)
 
         # Initialize the data collector and collect initial data
@@ -203,10 +204,12 @@ class Lab(Agent):
     An agent representing a research lab (team of researchers or single researcher)
     """
 
-    def __init__(self, lab_id, model, design_strategy):
+    def __init__(self, lab_id, model, design_strategy, replication_strategy, p_replication):
         self.lab_id = lab_id
         super().__init__(lab_id, model)
         self._design_strategy = design_strategy
+        self._replication_strategy = replication_strategy
+        self._p_replication = p_replication
         self._local_kbase = LocalKnowledgebase()
         self._balance_resources = 0
         self._landscape_dim = model.landscape.get_dim()
@@ -239,10 +242,20 @@ class Lab(Agent):
 
     def conduct_study(self):
         print("Conducting study...")
-        # Select solutions to test and allocate resources to testing them
-        if self._design_strategy == "random":
-            study_plan = self.random_design()
-
+        # Design original or replication study
+        if (self._replication_strategy == "none") or \
+            (self.random.random() > self._p_replication) or \
+            (len(self._local_kbase) == 0):
+            study_type = "original"
+            if self._design_strategy == "random":
+                study_plan = self.random_design()        
+        else:
+            study_type = "replication"
+            if self._replication_strategy == "random":
+                study_plan = self.random_replication()
+            elif self._replication_strategy == "targeted":
+                study_plan = self.targeted_replication()
+        
         # Spend resources on evaluating solutions against the landcape
         study_results = {}
         for (solution, resources) in study_plan.items():
@@ -255,7 +268,7 @@ class Lab(Agent):
 
         # Pack results into a study (no study ID before submitting to global kbase)
         new_study = Study(study_id=None, lab_id=self.lab_id, is_published=False,
-            study_type="original", target_dims=None, study_results=study_results)
+            study_type=study_type, target_dims=None, study_results=study_results)
         print("Study:\n", new_study)
         return new_study
 
@@ -279,6 +292,9 @@ class Lab(Agent):
         # Create study plan
         study_plan = {solution: self._balance_resources}
         study_plan = {(0.3, 0.7): self._balance_resources}
+    def random_replication(self):
+        pass
 
-        return study_plan
+    def targeted_replication(self):
+        pass
 

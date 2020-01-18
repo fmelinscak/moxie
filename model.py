@@ -13,15 +13,15 @@ class EpistemicLandscape:
     Represents the (noisy) epistemic landscape in which agents are searching
     for a peak in utility.
     """
-    def __init__(self, model, utility_func, noise_sigma, dim):
-        self._model = model
+    def __init__(self, utility_func, noise_sigma, dim, random):
+        self._random = random
         self._utility_func = utility_func
         self._noise_sigma = noise_sigma
         self._dim = dim
 
     def eval_solution(self, solution):
         utility = self._utility_func(solution)
-        noise = self._model.random.gauss(0, self._noise_sigma)
+        noise = self._random.gauss(0, self._noise_sigma)
         return  utility + noise
 
     def get_dim(self):
@@ -190,7 +190,7 @@ class OptimSciEnv(Model):
             utility_func = wicked_utility_func
             dim = 16
 
-        self.landscape = EpistemicLandscape(self, utility_func, noise_sigma, dim)
+        self.landscape = EpistemicLandscape(utility_func, noise_sigma, dim, self.random)
 
         # Initialize the schedule, create labs (agents), and add them to the schedule
         self.schedule = RandomActivation(self)

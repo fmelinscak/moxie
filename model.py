@@ -301,9 +301,7 @@ class Lab(Agent):
         study_plan = {(0.3, 0.7): self._balance_resources}
     def random_replication(self):
         # Select random original study from local kbase
-        original_studies = [s \
-            for s in self._local_kbase._accepted_studies.values() \
-            if s.study_type == "original"]
+        original_studies = self._local_kbase.get_original_studies()
         chosen_study = self.random.choice(original_studies)
 
         # Reuse original study's design plan

@@ -208,6 +208,9 @@ class OptimSciEnv(Model):
         # Collect data
         self.datacollector.collect(self)
 
+    def grant_resources(self):
+        return self.step_resources
+
 
 class Lab(Agent):
     """
@@ -233,9 +236,10 @@ class Lab(Agent):
     
 
     def request_resources(self):
+        received_resources = self.model.grant_resources()
         self._balance_resources += self.model.step_resources
         print("Got {new_resources} new resources. New balance is {balance}"\
-            .format(new_resources=self.model.step_resources, balance=self._balance_resources))
+            .format(new_resources=received_resources, balance=self._balance_resources))
 
     def update_local_kbase(self):
         # Find new studies in global kbase

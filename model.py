@@ -117,6 +117,11 @@ class Knowledgebase:
     def get_study_by_id(self, study_id):
         return self._accepted_studies[study_id]
 
+    def get_original_studies(self):
+        original_studies = [s \
+            for s in self._accepted_studies.values() \
+            if s.study_type == "original"]
+        return original_studies
 
 class LocalKnowledgebase(Knowledgebase):
     def __init__(self):

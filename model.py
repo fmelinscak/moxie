@@ -313,6 +313,22 @@ class Lab(Agent):
         # original and replication study
         return chosen_study.study_plan
 
-    def targeted_replication(self):
-        pass
+    def targeted_replication(self, c=2):
+        # Find solution with highest upper confidence bound (UCB)
+        # see here for inspiration: https://lilianweng.github.io/lil-log/2018/01/23/the-multi-armed-bandit-problem-and-its-solutions.html#bayesian-ucb
+        solution_summary = self._local_kbase.get_solution_summary()
+        ucb_criterion = lambda sol: solution_summary[sol]["mean"] + c*solution_summary[sol]["se"]
+        max_ucb_solution = max(solution_summary, key=ucb_criterion)
+        # TODO: address case when multiple solutions are maximizers
+
+        # Find original studies that have evaluated the max UCB solution
+        original_studies = self._local_kbase.get_original_studies()
+        max_ucb_original_studies = [s for s in original_studies \
+            if max_ucb_solution in s.study_plan]
+        chosen_study = self.random.choice(max_ucb_original_studies)
+
+        # Reuse original study's design plan
+        # TODO: address case when resources differ between
+        # original and replication study
+        return chosen_study.study_plan
 

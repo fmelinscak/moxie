@@ -49,12 +49,13 @@ def wicked_utility_func(x):
 
 class Study:
     def __init__(self, study_id, lab_id, is_published, study_type,
-        target_dims, study_results):
+        target_dims, study_plan, study_results):
         self.study_id = study_id
         self.lab_id = lab_id
         self.is_published = is_published
         self.study_type = study_type
         self.target_dims = target_dims
+        self.study_plan = study_plan
         self.study_results = study_results
 
     def __repr__(self):
@@ -268,7 +269,8 @@ class Lab(Agent):
 
         # Pack results into a study (no study ID before submitting to global kbase)
         new_study = Study(study_id=None, lab_id=self.lab_id, is_published=False,
-            study_type=study_type, target_dims=None, study_results=study_results)
+            study_type=study_type, target_dims=None,
+            study_plan=study_plan, study_results=study_results)
         print("Study:\n", new_study)
         return new_study
 

@@ -261,7 +261,7 @@ class Lab(Agent):
 
     def request_resources(self):
         received_resources = self.model.grant_resources()
-        self._balance_resources += self.model.step_resources
+        self._balance_resources += received_resources
         print("Got {new_resources} new resources. New balance is {balance}"\
             .format(new_resources=received_resources, balance=self._balance_resources))
 

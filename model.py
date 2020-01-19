@@ -315,13 +315,13 @@ class Lab(Agent):
             (self.random.random() > self._p_replication):
             study_type = "original"
             if self._design_strategy == "random":
-                study_plan = self.random_design()        
+                study_plan, target_dims = self.random_design()
         else:
             study_type = "replication"
             if self._replication_strategy == "random":
-                study_plan = self.random_replication()
+                study_plan, target_dims = self.random_replication()
             elif self._replication_strategy == "targeted":
-                study_plan = self.targeted_replication()
+                study_plan, target_dims = self.targeted_replication()
         
         # Spend resources on evaluating solutions against the landcape
         study_results = {}
@@ -335,7 +335,7 @@ class Lab(Agent):
 
         # Pack results into a study (no study ID before submitting to global kbase)
         new_study = Study(study_id=None, lab_id=self.lab_id, is_published=False,
-            study_type=study_type, target_dims=None,
+            study_type=study_type, target_dims=target_dims,
             study_plan=study_plan, study_results=study_results)
         print("Study:\n", new_study)
         return new_study
@@ -360,6 +360,8 @@ class Lab(Agent):
         # Create study plan
         study_plan = {solution: self._balance_resources}
         study_plan = {(0.3, 0.7): self._balance_resources}
+        target_dims = []
+        return study_plan, target_dims
     def random_replication(self):
         # Select random original study from local kbase
         original_studies = self._local_kbase.get_original_studies()
@@ -368,7 +370,7 @@ class Lab(Agent):
         # Reuse original study's design plan
         # TODO: take into account case when resources differ between
         # original and replication study
-        return chosen_study.study_plan
+        return chosen_study.study_plan, chosen_study.target_dims
 
     def targeted_replication(self, c=2):
         # Find solution with highest upper confidence bound (UCB)
@@ -387,5 +389,5 @@ class Lab(Agent):
         # Reuse original study's design plan
         # TODO: address case when resources differ between
         # original and replication study
-        return chosen_study.study_plan
+        return chosen_study.study_plan, chosen_study.target_dims
 

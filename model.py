@@ -154,6 +154,14 @@ class Knowledgebase:
         return copy.deepcopy(self._solution_summary)
 
 
+def get_max_mean_solution(model):
+    solution_summary = model.global_kbase.get_solution_summary()
+    max_mean_criterion = lambda sol: solution_summary[sol]["mean"]
+    maximizing_solution = max(solution_summary, \
+        key=max_mean_criterion)
+    return maximizing_solution
+
+
 class LocalKnowledgebase(Knowledgebase):
     def __init__(self):
         super().__init__()
@@ -205,6 +213,12 @@ class OptimSciEnv(Model):
         # Initialize global knowledge base (i.e. record of published studies)
         self.global_kbase = GlobalKnowledgebase(self)
 
+        # Initialize best current solution, its true utility, and cumulative utility
+        # Note: these values are used as observations of the model
+        self.max_mean_solution = ()
+        self.true_util_max_mean_solution = np.nan
+        self.cumsum_true_util = 0
+
         # Initialize the epistemic landscape ('kind' or 'wicked')
         if landscape_type == "kind":
             noise_sigma = 0.1
@@ -219,18 +233,30 @@ class OptimSciEnv(Model):
 
         # Initialize the schedule, create labs (agents), and add them to the schedule
         self.schedule = RandomActivation(self)
-
         for i in range(self.n_labs):
             lab = Lab(i, self, design_strategy, replication_strategy, p_replication)
             self.schedule.add(lab)
 
         # Initialize the data collector and collect initial data
-        self.datacollector = DataCollector()
+        self.datacollector = DataCollector(
+            model_reporters={
+                "max_mean_solution" : "max_mean_solution",
+                "true_util_max_mean_solution" : "true_util_max_mean_solution",
+                "cumsum_true_util" : "cumsum_true_util"
+            }
+        )
         self.datacollector.collect(self)
 
     def step(self):
         # Run single schedule step
         self.schedule.step()
+
+        # Determine best solution, its true utility, and update
+        # cumulative utility (to be recorded as data)
+        self.max_mean_solution = get_max_mean_solution(self)
+        self.true_util_max_mean_solution = \
+            self.landscape.eval_solution_noiseless(self.max_mean_solution)
+        self.cumsum_true_util += self.true_util_max_mean_solution
 
         # Collect data
         self.datacollector.collect(self)

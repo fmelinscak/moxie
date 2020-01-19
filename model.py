@@ -351,7 +351,7 @@ class Lab(Agent):
         self._local_kbase.receive_study(study)
         print("Local kbase:\n", self._local_kbase)
 
-    
+    # Design strategies
     def random_design(self):
         # Generate a random solution
         solution = tuple([self.random.random() \
@@ -362,6 +362,42 @@ class Lab(Agent):
         study_plan = {(0.3, 0.7): self._balance_resources}
         target_dims = []
         return study_plan, target_dims
+
+    def random_ofat_design(self):
+        # When there is no known solution yet, use a random design
+        if len(self._local_kbase) == 0:
+            return self.random_design()
+        # Find solution with highest observed expected utility
+        solution_summary = self._local_kbase.get_solution_summary()
+        max_mean_criterion = lambda sol: solution_summary[sol]["mean"]
+        maximizing_solution = max(solution_summary, key=max_mean_criterion)
+        # TODO: address case when multiple solutions are maximizers
+
+        # Pick one random target dimension
+        target_dim = self.random.randint(0, self._landscape_dim - 1)
+
+        # Uniformly pick the value of the target dimension variable
+        target_dim_val = self.random.random()
+
+        # The new design is the best known solution with target dim
+        # set to the new (random) value
+        new_solution = tuple(val if i != target_dim else target_dim_val \
+             for (i, val) in enumerate(maximizing_solution))
+
+        # The study plan assigns half of the resources to the best known
+        # solution, and the other half to the perturbed new solution
+        maximizing_solution_resources = self._balance_resources // 2
+        new_solution_resources = \
+            self._balance_resources - maximizing_solution_resources
+        study_plan = {
+            maximizing_solution : maximizing_solution_resources,
+            new_solution : new_solution_resources
+        }
+
+        return study_plan, [target_dim]
+
+
+    # Replication strategies
     def random_replication(self):
         # Select random original study from local kbase
         original_studies = self._local_kbase.get_original_studies()

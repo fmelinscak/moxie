@@ -19,6 +19,9 @@ class EpistemicLandscape:
         self._noise_sigma = noise_sigma
         self._dim = dim
 
+    def eval_solution_noiseless(self, solution):
+        return self._utility_func(solution)
+
     def eval_solution(self, solution):
         utility = self._utility_func(solution)
         noise = self._random.gauss(0, self._noise_sigma)

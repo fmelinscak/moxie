@@ -221,11 +221,13 @@ class OptimSciEnv(Model):
 
         # Initialize the epistemic landscape ('kind' or 'wicked')
         if landscape_type == "kind":
-            noise_sigma = 0.1
+            # noise_sigma = 0.1
+            noise_sigma = np.sqrt(0.5) # This results in an SNR=2 at the global optimum
             utility_func = kind_utility_func
             dim = 2
         if landscape_type == "wicked":
-            noise_sigma = 0.3
+            # noise_sigma = 0.3
+            noise_sigma = np.sqrt(2.0) # This results in an SNR=0.5 at the global optimum
             utility_func = wicked_utility_func
             dim = 16
 

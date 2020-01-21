@@ -419,3 +419,11 @@ class Lab(Agent):
         # original and replication study
         return chosen_study.study_plan, chosen_study.target_dims
 
+def make_discounted_sum_utility(discount_factor=1):
+    def discounted_utility_func(model):
+        dc = model.datacollector
+        utilities = dc.model_vars["true_util_max_mean_solution"] # Non-discounted utilities
+        utilities = utilities[1:] # Drop the initial utility (it is always NaN)
+        n = len(utilities)
+        return np.sum(discount_factor**np.arange(n) * utilities)   
+    return discounted_utility_func

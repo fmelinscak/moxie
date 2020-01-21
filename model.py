@@ -308,7 +308,7 @@ class Lab(Agent):
             self._local_kbase.receive_study(retained_study)
 
     def conduct_study(self):
-        print("Conducting study...")
+        # print("Conducting study...")
         # Design original or replication study
         if (self._replication_strategy == "none") or \
             (len(self._local_kbase) == 0) or \
@@ -316,6 +316,16 @@ class Lab(Agent):
             study_type = "original"
             if self._design_strategy == "random":
                 study_plan, target_dims = self.random_design()
+            elif self._design_strategy == "random_ofat":
+                study_plan, target_dims = self.random_ofat_design()
+            # elif self._design_strategy == "kind_optimal":
+            #     study_plan, target_dims = self.kind_optimal_design()
+            # elif self._design_strategy == "kind_worst":
+            #     study_plan, target_dims = self.kind_worst_design()
+            # elif self._design_strategy == "wicked_optimal":
+            #     study_plan, target_dims = self.wicked_optimal_design()
+            # elif self._design_strategy == "wicked_worst":
+            #     study_plan, target_dims = self.wicked_worst_design()
         else:
             study_type = "replication"
             if self._replication_strategy == "random":
@@ -359,7 +369,11 @@ class Lab(Agent):
         
         # Create study plan
         study_plan = {solution: self._balance_resources}
-        study_plan = {(0.3, 0.7): self._balance_resources}
+        # study_plan = {(0.3, 0.7): self._balance_resources}
+        # if self.random.random() < 0.5:
+        #     study_plan = {(0.7, 0.3): self._balance_resources}
+        # else:
+        #     study_plan = {(0.3, 0.7): self._balance_resources}
         target_dims = []
         return study_plan, target_dims
 
@@ -396,6 +410,33 @@ class Lab(Agent):
 
         return study_plan, [target_dim]
 
+    # def kind_optimal_design(self):
+    #     study_plan = {
+    #         (0.7, 0.3) : self._balance_resources
+    #     }
+    #     target_dims = []
+    #     return study_plan, target_dims
+
+    # def kind_worst_design(self):
+    #     study_plan = {
+    #         (0.0, 1.0) : self._balance_resources
+    #     }
+    #     target_dims = []
+    #     return study_plan, target_dims
+
+    # def wicked_optimal_design(self):
+    #     study_plan = {
+    #         (0.2, 0.8) : self._balance_resources
+    #     }
+    #     target_dims = []
+    #     return study_plan, target_dims
+
+    # def wicked_worst_design(self):
+    #     study_plan = {
+    #         (1.0, 1.0) : self._balance_resources
+    #     }
+    #     target_dims = []
+    #     return study_plan, target_dims
 
     # Replication strategies
     def random_replication(self):

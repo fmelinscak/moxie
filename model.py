@@ -283,18 +283,14 @@ class Lab(Agent):
         self._landscape_dim = model.landscape.get_dim()
 
     def step(self):
-        print("\nAgent {} activated".format(self.lab_id))
         self.request_resources()
         self.update_local_kbase()
         new_study = self.conduct_study()
         self.submit_study(new_study)
-    
 
     def request_resources(self):
         received_resources = self.model.grant_resources()
         self._balance_resources += received_resources
-        print("Got {new_resources} new resources. New balance is {balance}"\
-            .format(new_resources=received_resources, balance=self._balance_resources))
 
     def update_local_kbase(self):
         # Find new studies in global kbase
@@ -310,7 +306,6 @@ class Lab(Agent):
             self._local_kbase.receive_study(retained_study)
 
     def conduct_study(self):
-        # print("Conducting study...")
         # Design original or replication study
         if (self._replication_strategy == "none") or \
             (len(self._local_kbase) == 0) or \
@@ -320,14 +315,6 @@ class Lab(Agent):
                 study_plan, target_dims = self.random_design()
             elif self._design_strategy == "random_ofat":
                 study_plan, target_dims = self.random_ofat_design()
-            # elif self._design_strategy == "kind_optimal":
-            #     study_plan, target_dims = self.kind_optimal_design()
-            # elif self._design_strategy == "kind_worst":
-            #     study_plan, target_dims = self.kind_worst_design()
-            # elif self._design_strategy == "wicked_optimal":
-            #     study_plan, target_dims = self.wicked_optimal_design()
-            # elif self._design_strategy == "wicked_worst":
-            #     study_plan, target_dims = self.wicked_worst_design()
         else:
             study_type = "replication"
             if self._replication_strategy == "random":
@@ -342,26 +329,21 @@ class Lab(Agent):
                 for _ in range(resources)]
             study_results[solution] = utilities
             self._balance_resources -= resources
-        
-        print("Study results:\n", study_results)
 
         # Pack results into a study (no study ID before submitting to global kbase)
         new_study = Study(study_id=None, lab_id=self.lab_id, is_published=False,
             study_type=study_type, target_dims=target_dims,
             study_plan=study_plan, study_results=study_results)
-        print("Study:\n", new_study)
+
         return new_study
 
     def submit_study(self, study):
         # Submit study to global knowledgebase
-        print("Submitting study...\n")
         study.study_id, study.study_published = \
             self.model.global_kbase.receive_study(study)
-        print("Global kbase:\n", self.model.global_kbase)
 
         # Add study (now with id) to local knowledgebase
         self._local_kbase.receive_study(study)
-        print("Local kbase:\n", self._local_kbase)
 
     # Design strategies
     def random_design(self):
@@ -371,11 +353,6 @@ class Lab(Agent):
         
         # Create study plan
         study_plan = {solution: self._balance_resources}
-        # study_plan = {(0.3, 0.7): self._balance_resources}
-        # if self.random.random() < 0.5:
-        #     study_plan = {(0.7, 0.3): self._balance_resources}
-        # else:
-        #     study_plan = {(0.3, 0.7): self._balance_resources}
         target_dims = []
         return study_plan, target_dims
 
@@ -411,34 +388,6 @@ class Lab(Agent):
         }
 
         return study_plan, [target_dim]
-
-    # def kind_optimal_design(self):
-    #     study_plan = {
-    #         (0.7, 0.3) : self._balance_resources
-    #     }
-    #     target_dims = []
-    #     return study_plan, target_dims
-
-    # def kind_worst_design(self):
-    #     study_plan = {
-    #         (0.0, 1.0) : self._balance_resources
-    #     }
-    #     target_dims = []
-    #     return study_plan, target_dims
-
-    # def wicked_optimal_design(self):
-    #     study_plan = {
-    #         (0.2, 0.8) : self._balance_resources
-    #     }
-    #     target_dims = []
-    #     return study_plan, target_dims
-
-    # def wicked_worst_design(self):
-    #     study_plan = {
-    #         (1.0, 1.0) : self._balance_resources
-    #     }
-    #     target_dims = []
-    #     return study_plan, target_dims
 
     # Replication strategies
     def random_replication(self):
